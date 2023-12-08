@@ -17,8 +17,8 @@ random.seed(0)
 pallette = [0, 0, 0] + [random.randint(0, 255) for _ in range(255*3)]
 
 # set coco data path
-json_path = "./archive/coco2017/annotations/instances_val2017.json"
-img_path = "./archive/coco2017/val2017"
+json_path = "./data/archive/coco2017/annotations/instances_val2017.json"
+img_path = "./data/archive/coco2017/val2017"
 
 # load coco data
 coco = COCO(annotation_file=json_path)

@@ -1,26 +1,18 @@
 import os
 import numpy as np
 
-import torch
-from torch.utils.data import Dataset, DataLoader
-
 from PIL import Image
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader, random_split
 
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 
 
-# Change the working directory to the location of this script
-Path = (os.path.split(os.path.realpath(__file__))[0] + "/").replace("\\\\", "/").replace("\\", "/")
-os.chdir(Path)
-
-
 class COCODataset(Dataset):
     def __init__(self):
 
-        self.json_path = "./archive/coco2017/annotations/instances_val2017.json"
-        self.img_path = "./archive/coco2017/val2017"
+        self.json_path = "./data/archive/coco2017/annotations/instances_val2017.json"
+        self.img_path = "./data/archive/coco2017/val2017"
         
         # load coco data
         self.coco = COCO(annotation_file=self.json_path)

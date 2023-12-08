@@ -4,8 +4,6 @@ Reference:
 [Yoo et al. 2019] Learning Loss for Active Learning (https://arxiv.org/abs/1905.03677)
 '''
 
-import sys
-sys.path.append('D:\\Don\Downloads\\ML Project\\Learning Loss Technique\\models\\unet')
 
 # Python
 import os
@@ -37,8 +35,12 @@ import models.resnet as resnet
 import models.lossnet as lossnet
 from config import *
 from data.sampler import SubsetSequentialSampler
-from unet_model import UNet
+from models.unet.unet_model import UNet
 from data.coco_dataloader import COCODataset
+
+# Change the working directory to the location of this script
+Path = (os.path.split(os.path.realpath(__file__))[0] + "/").replace("\\\\", "/").replace("\\", "/")
+os.chdir(Path)
 
 # Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -288,6 +290,7 @@ def get_uncertainty(models, unlabeled_loader):
 # Main
 if __name__ == '__main__':
     vis = visdom.Visdom(server='http://localhost', port=9000)
+    print("\n\nVisdom Debug\n\n")
     plot_data = {'X': [], 'Y': [], 'legend': ['Backbone Loss', 'Module Loss', 'Total Loss']}
 
     for trial in range(TRIALS):

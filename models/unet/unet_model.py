@@ -1,7 +1,4 @@
-import sys
-sys.path.append('C:\\Farnaz\\Courses\\ML-Guo\\Project\\Learning-Loss-for-Active-Learning-master\\Learning-Loss-for-Active-Learning-master\\models\\unet\\')
-
-from unet_parts import *
+from models.unet.unet_parts import *
 from torch import nn
 
 
