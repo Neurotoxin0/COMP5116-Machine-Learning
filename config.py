@@ -1,5 +1,4 @@
-''' Configuration File.
-'''
+''' Configuration File '''
 
 ##
 # Learning Loss for Active Learning
@@ -13,7 +12,7 @@ MARGIN = 1.0 # xi
 WEIGHT = 1.0 # lambda
 
 TRIALS = 3
-CYCLES = 10
+CYCLES = 5
 
 EPOCH = 200
 LR = 0.1
