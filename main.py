@@ -290,7 +290,7 @@ def get_uncertainty(models, unlabeled_loader):
 # Main
 if __name__ == '__main__':
     #vis = visdom.Visdom(server='http://localhost', port=8079)
-    vis = visdom.Visdom(env=u'main',use_incoming_socket=False)
+    vis = visdom.Visdom(env=u'main',use_incoming_socket=False)  # have to manually open a new terminal and run python -m visdom.server
     plot_data = {'X': [], 'Y': [], 'legend': ['Backbone Loss', 'Module Loss', 'Total Loss']}
 
     for trial in range(TRIALS):
