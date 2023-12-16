@@ -302,7 +302,7 @@ if __name__ == '__main__':
     # Format the time as a string with underscores
     time_str = current_time.strftime("%Y_%m_%d_%H_%M")
     if random_sampling:
-        file_name = f"experiment_random_{time_str}.txt"
+        file_name = f"experiment_random_{WEIGHT}_{time_str}.txt"
     else:
         file_name = f"experiment_learningloss_{WEIGHT}_{time_str}.txt"
 
