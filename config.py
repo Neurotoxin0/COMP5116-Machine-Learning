@@ -5,16 +5,16 @@
 NUM_TRAIN = 4000 # N
 NUM_VAL   = 5000 - NUM_TRAIN
 BATCH     = 128 # B
-SUBSET    = 500 # M
-ADDENDUM  = 200 # K
+SUBSET    = 5000 # M
+ADDENDUM  = 400 # K
 
 MARGIN = 1.0 # xi
 WEIGHT = 1.0 # lambda
 
-TRIALS = 3
+TRIALS = 1
 CYCLES = 5
 
-EPOCH = 200
+EPOCH = 50 # TODO back to 50
 LR = 0.1
 MILESTONES = [160]
 EPOCHL = 120 # After 120 epochs, stop the gradient from the loss prediction module propagated to the target model

@@ -8,6 +8,7 @@ Reference:
 # Python
 import os
 import random
+import datetime
 
 # Torch
 import torch
@@ -75,22 +76,10 @@ def get_datasets():
     test_size = len(coco_dataset) - train_size
     train_dataset, test_dataset = random_split(coco_dataset, [train_size, test_size])
 
-    # # Create train and test dataloaders
-    # train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, sampler=SubsetRandomSampler(labeled_set), 
-    #                               pin_memory=True)
-    # test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
-    # unlabeled_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, sampler=SubsetRandomSampler(unlabeled_set), 
-    #                               pin_memory=True)
-
     return train_dataset, test_dataset
 
 coco_train, coco_test = get_datasets()
 coco_unlabeled = coco_train
-
-# # TODO: change the dataset to coco
-# coco_train = CIFAR10('../cifar10', train=True, download=True, transform=train_transform)
-# coco_unlabeled   = CIFAR10('../cifar10', train=True, download=True, transform=test_transform)
-# coco_test  = CIFAR10('../cifar10', train=False, download=True, transform=test_transform)
 
 
 ##
@@ -154,6 +143,7 @@ def train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, v
     models['module'].train()
     global iters
 
+
     for data in tqdm(dataloaders['train']):
         inputs = data[0].to(device).permute(0, 3, 1, 2).type(torch.float)
         labels = data[1].to(device).type(torch.long)
@@ -164,11 +154,6 @@ def train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, v
 
         # scores, features = models['backbone'](inputs)
         scores, features = models['backbone'](inputs)
-        # scores_flatted = scores.reshape(BATCH, 90, -1)
-        # labels_flatted = labels.reshape(BATCH, -1)
-
-        # target_loss = criterion(scores_flatted, labels_flatted)
-
 
 
         target_loss = criterion(scores, labels)
@@ -196,6 +181,8 @@ def train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, v
         optimizers['backbone'].step()
         optimizers['module'].step()
 
+        
+
         # Visualize
         if (iters % 100 == 0) and (vis != None) and (plot_data != None):
             plot_data['X'].append(iters)
@@ -217,6 +204,8 @@ def train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, v
                 },
                 win=1
             )
+    epoch_msg = f'[Training], target model loss: {m_backbone_loss}, loss module loss: {loss}, total loss: {loss}'
+    return epoch_msg
 
 #
 def test(models, dataloaders, mode='val'):
@@ -242,15 +231,20 @@ def test(models, dataloaders, mode='val'):
 def train(models, criterion, optimizers, schedulers, dataloaders, num_epochs, epoch_loss, vis, plot_data):
     print('>> Train a Model.')
     best_acc = 0.
-    checkpoint_dir = os.path.join('./cifar10', 'train', 'weights')
+    checkpoint_dir = os.path.join('./coco', 'train', 'weights')
+    log_dir = os.path.join('./coco', 'train', 'logs')
+
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
+        os.makedirs(log_dir)
     
+    epoch_msgs = []
     for epoch in range(num_epochs):
         schedulers['backbone'].step()
         schedulers['module'].step()
 
-        train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, vis, plot_data)
+        epoch_msg = train_epoch(models, criterion, optimizers, dataloaders, epoch, epoch_loss, vis, plot_data)
+        epoch_msgs.append(f'epoch {epoch}, {epoch_msg}')
 
         # Save a checkpoint
         if False and epoch % 5 == 4:
@@ -265,6 +259,7 @@ def train(models, criterion, optimizers, schedulers, dataloaders, num_epochs, ep
                 '%s/active_resnet18_cifar10.pth' % (checkpoint_dir))
             print('Val Acc: {:.3f} \t Best Acc: {:.3f}'.format(acc, best_acc))
     print('>> Finished.')
+    return epoch_msgs
 
 #
 def get_uncertainty(models, unlabeled_loader):
@@ -286,9 +281,32 @@ def get_uncertainty(models, unlabeled_loader):
     return uncertainty.cpu()
 
 
+def save_logs(file_name, log_ls):
+    log_dir = os.path.join('./coco', 'train', 'logs')
+
+    # Open the file with the unique name in append mode
+    with open(f'{log_dir}/{file_name}', 'a') as file:
+        # Your for loop
+        for line in log_ls:  # Replace 5 with the actual number of iterations in your loop
+            # Write each list to the file
+            file.write(''.join(line) + '\n')
+    
+
 ##
 # Main
 if __name__ == '__main__':
+    random_sampling = True
+    WEIGHT = 0.5   # 0, 0.5, 1, 1.5, 2
+    current_time = datetime.datetime.now()
+
+    # Format the time as a string with underscores
+    time_str = current_time.strftime("%Y_%m_%d_%H_%M")
+    if random_sampling:
+        file_name = f"experiment_random_{time_str}.txt"
+    else:
+        file_name = f"experiment_learningloss_{WEIGHT}_{time_str}.txt"
+
+
     #vis = visdom.Visdom(server='http://localhost', port=8079)
     vis = visdom.Visdom(env=u'main',use_incoming_socket=False)  # have to manually open a new terminal and run python -m visdom.server
     plot_data = {'X': [], 'Y': [], 'legend': ['Backbone Loss', 'Module Loss', 'Total Loss']}
@@ -308,7 +326,6 @@ if __name__ == '__main__':
         dataloaders  = {'train': train_loader, 'test': test_loader}
         
         # Model
-        # resnet18    = resnet.ResNet18(num_classes=10).to(device) # TODO: change it to segmentation model
         unet = UNet(n_classes=90, n_channels=3).to(device)
         loss_module = lossnet.LossNet().to(device)
         models      = {'backbone': unet, 'module': loss_module}
@@ -329,8 +346,11 @@ if __name__ == '__main__':
             schedulers = {'backbone': sched_backbone, 'module': sched_module}
 
             # Training and test
-            train(models, criterion, optimizers, schedulers, dataloaders, EPOCH, EPOCHL, vis, plot_data)
+            cycle_logs = train(models, criterion, optimizers, schedulers, dataloaders, EPOCH, EPOCHL, vis, plot_data)
             acc = test(models, dataloaders, mode='test')
+            cycle_logs.append(f'cycle {cycle}, [tesing], accuracy: {acc}')
+
+            save_logs(file_name, cycle_logs)
             print('Trial {}/{} || Cycle {}/{} || Label set size {}: Test acc {}'.format(trial+1, TRIALS, cycle+1, CYCLES, len(labeled_set), acc))
 
             ##
@@ -344,16 +364,25 @@ if __name__ == '__main__':
             unlabeled_loader = DataLoader(coco_unlabeled, batch_size=BATCH, 
                                           sampler=SubsetSequentialSampler(subset), # more convenient if we maintain the order of subset
                                           pin_memory=True)
-
-            # Measure uncertainty of each data points in the subset
-            uncertainty = get_uncertainty(models, unlabeled_loader)
-
-            # Index in ascending order
-            arg = np.argsort(uncertainty)
             
-            # Update the labeled dataset and the unlabeled dataset, respectively
-            labeled_set += list(torch.tensor(subset)[arg][-ADDENDUM:].numpy())
-            unlabeled_set = list(torch.tensor(subset)[arg][:-ADDENDUM].numpy()) + unlabeled_set[SUBSET:]
+            if not random_sampling:
+
+                # Measure uncertainty of each data points in the subset
+                uncertainty = get_uncertainty(models, unlabeled_loader)
+
+                # Index in ascending order
+                arg = np.argsort(uncertainty)
+
+                # Update the labeled dataset and the unlabeled dataset, respectively
+                labeled_set += list(torch.tensor(subset)[arg][-ADDENDUM:].numpy())
+                unlabeled_set = list(torch.tensor(subset)[arg][:-ADDENDUM].numpy()) + unlabeled_set[SUBSET:]
+            else: # TODO: randomly add
+                # get random sample 
+                # Update the labeled dataset and the unlabeled dataset, respectively
+                labeled_set += list(torch.tensor(subset)[-ADDENDUM:].numpy())
+                unlabeled_set = list(torch.tensor(subset)[:-ADDENDUM].numpy()) + unlabeled_set[SUBSET:]
+
+            
 
             # Create a new dataloader for the updated labeled dataset
             dataloaders['train'] = DataLoader(coco_train, batch_size=BATCH, 
@@ -366,4 +395,4 @@ if __name__ == '__main__':
                     'state_dict_backbone': models['backbone'].state_dict(),
                     'state_dict_module': models['module'].state_dict()
                 },
-                './cifar10/train/weights/active_resnet18_cifar10_trial{}.pth'.format(trial))
+                './coco/train/weights/active_unet_coco2017_trial{}.pth'.format(trial))
