@@ -292,23 +292,21 @@ def save_logs(file_name, log_ls):
             file.write(''.join(line) + '\n')
     
 
-##
-# Main
-if __name__ == '__main__':
-    random_sampling = True
-    WEIGHT = 0.5   # 0, 0.5, 1, 1.5, 2
+def main(random_sampling, WEIGHT):
     current_time = datetime.datetime.now()
 
     # Format the time as a string with underscores
     time_str = current_time.strftime("%Y_%m_%d_%H_%M")
     if random_sampling:
         file_name = f"experiment_random_{WEIGHT}_{time_str}.txt"
+        env_name = 'random_sampling'
     else:
         file_name = f"experiment_learningloss_{WEIGHT}_{time_str}.txt"
+        env_name = 'fixed_sampling'
 
 
     #vis = visdom.Visdom(server='http://localhost', port=8079)
-    vis = visdom.Visdom(env=u'main',use_incoming_socket=False)  # have to manually open a new terminal and run python -m visdom.server
+    vis = visdom.Visdom(env=env_name,use_incoming_socket=False)  # have to manually open a new terminal and run python -m visdom.server
     plot_data = {'X': [], 'Y': [], 'legend': ['Backbone Loss', 'Module Loss', 'Total Loss']}
 
     for trial in range(TRIALS):
@@ -396,3 +394,10 @@ if __name__ == '__main__':
                     'state_dict_module': models['module'].state_dict()
                 },
                 './coco/train/weights/active_unet_coco2017_trial{}.pth'.format(trial))
+
+##
+# Main
+if __name__ == '__main__':
+    weight = 0.5   # 0, 0.5, 1, 1.5, 2
+    main(False, weight)
+    main(True, weight)
