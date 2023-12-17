@@ -299,10 +299,10 @@ def main(random_sampling, WEIGHT):
     time_str = current_time.strftime("%Y_%m_%d_%H_%M")
     if random_sampling:
         file_name = f"experiment_random_{WEIGHT}_{time_str}.txt"
-        env_name = 'random_sampling'
+        env_name = 'random_sampling_' + str(WEIGHT)
     else:
         file_name = f"experiment_learningloss_{WEIGHT}_{time_str}.txt"
-        env_name = 'fixed_sampling'
+        env_name = 'learningloss_sampling_' + str(WEIGHT)
 
 
     #vis = visdom.Visdom(server='http://localhost', port=8079)
@@ -398,6 +398,8 @@ def main(random_sampling, WEIGHT):
 ##
 # Main
 if __name__ == '__main__':
-    weight = 0.5   # 0, 0.5, 1, 1.5, 2
-    main(False, weight)
-    main(True, weight)
+    weight = [0, 0.5, 1, 1.5, 2]    # default: 0.5
+
+    for w in weight:
+        main(False, w)
+        main(True, w)
