@@ -45,7 +45,7 @@ sorted_ids = [x for _, x in sorted(zip(num_of_objects, ids), key=lambda pair: pa
 selected_images = sorted_ids[:num_of_pics]
 
 # iter over the selected images
-for img_id in selected_images:
+for img_id in ids[:5]:
     # get annotation ids of the image
     ann_ids = coco.getAnnIds(imgIds=img_id)
     
