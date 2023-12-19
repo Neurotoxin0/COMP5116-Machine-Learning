@@ -305,7 +305,6 @@ def main(random_sampling, WEIGHT):
         env_name = 'learningloss_sampling_' + str(WEIGHT)
 
 
-    #vis = visdom.Visdom(server='http://localhost', port=8079)
     vis = visdom.Visdom(env=env_name,use_incoming_socket=False)  # have to manually open a new terminal and run python -m visdom.server
     plot_data = {'X': [], 'Y': [], 'legend': ['Backbone Loss', 'Module Loss', 'Total Loss']}
 
