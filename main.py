@@ -374,7 +374,7 @@ def main(random_sampling, WEIGHT):
                 # Update the labeled dataset and the unlabeled dataset, respectively
                 labeled_set += list(torch.tensor(subset)[arg][-ADDENDUM:].numpy())
                 unlabeled_set = list(torch.tensor(subset)[arg][:-ADDENDUM].numpy()) + unlabeled_set[SUBSET:]
-            else: # TODO: randomly add
+            else: 
                 # get random sample 
                 # Update the labeled dataset and the unlabeled dataset, respectively
                 labeled_set += list(torch.tensor(subset)[-ADDENDUM:].numpy())
